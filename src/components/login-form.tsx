@@ -174,9 +174,20 @@ export function LoginForm({
                 <Button variant="outline" type="button" disabled>
                   G<span className="sr-only">Google</span>
                 </Button>
-                <Button variant="outline" type="button" disabled>
-                  TG
-                  <span className="sr-only">Telegram</span>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => (window.location.href = "/api/auth/github")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    className="w-5 h-5 mr-1"
+                  >
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54...Z" />
+                  </svg>
+                  GitHub
                 </Button>
               </Field>
 
