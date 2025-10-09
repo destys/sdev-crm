@@ -1,0 +1,30 @@
+{
+  "HomePage": {
+    "title": "Hello world!"
+  },
+  "auth": {
+    "welcome": "Welcome back",
+    "subtitle": "Login to your SomeDev CRM account",
+    "email": "Email",
+    "password": "Password",
+    "forgot": "Forgot your password?",
+    "login": "Login",
+    "or": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "signup": "Sign up",
+    "terms1": "By clicking continue, you agree to our",
+    "terms2": "Terms of Service",
+    "and": "and",
+    "privacy": "Privacy Policy"
+  },
+  "userMenu": {
+    "upgrade": "Upgrade to Pro",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "logout": "Log out"
+  },
+  "lang": {
+    "language": "Language"
+  }
+}
