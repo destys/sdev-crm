@@ -5,7 +5,7 @@ import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
 /**
- * ⚙️  Только NEXT_PUBLIC_* переменные доступны на Edge Runtime.
+ * ⚙️ В Edge runtime доступны только NEXT_PUBLIC_* переменные.
  */
 const AUTH_COOKIE_NAME =
   process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "cf_session";
@@ -33,10 +33,10 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Применяем next-intl локализацию
+  // 2️⃣ Подключаем i18n middleware
   const intlResponse = intlMiddleware(req);
 
-  // 3️⃣ Определяем зоны приложения
+  // 3️⃣ Определяем публичные страницы
   const isAuthPage = isRu
     ? /^\/ru\/sign-(in|up)/.test(pathname)
     : /^\/sign-(in|up)/.test(pathname);
@@ -45,26 +45,26 @@ export default function middleware(req: NextRequest) {
     ? /^\/ru(\/)?$/.test(pathname)
     : /^\/$/.test(pathname);
 
-  // 4️⃣ Нет токена → редирект на страницу входа
-  if (isRootPage && !token) {
+  // 4️⃣ Если нет токена и это не auth-страница → редиректим на /sign-in
+  if (!token && !isAuthPage) {
     const url = req.nextUrl.clone();
     url.pathname = isRu ? "/ru/sign-in" : "/sign-in";
     return NextResponse.redirect(url);
   }
 
-  // 5️⃣ Уже авторизован → редирект с /sign-in /sign-up на главную
-  if (isAuthPage && token) {
+  // 5️⃣ Если токен есть и пользователь на sign-in / sign-up → редиректим на главную
+  if (token && isAuthPage) {
     const url = req.nextUrl.clone();
     url.pathname = isRu ? "/ru" : "/";
     return NextResponse.redirect(url);
   }
 
-  // 6️⃣ Всё остальное разрешаем
+  // 6️⃣ Всё остальное пропускаем
   return intlResponse ?? NextResponse.next();
 }
 
 /**
- * ✅ Middleware срабатывает только на страницах, а не на API/статике
+ * ✅ Middleware срабатывает только на страницах (не API и не статика)
  */
 export const config = {
   matcher: ["/((?!api|trpc|_next|_vercel|.*\\..*).*)"],
