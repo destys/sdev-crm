@@ -15,7 +15,37 @@
     "terms1": "By clicking continue, you agree to our",
     "terms2": "Terms of Service",
     "and": "and",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email to receive a password reset link.",
+      "emailLabel": "Email address",
+      "submit": "Send link",
+      "loading": "Sending...",
+      "backToLogin": "Remember your password?",
+      "loginLink": "Sign in",
+      "success": "Password reset email sent!",
+      "error": "Failed to send email. Please try again later.",
+      "terms": {
+        "prefix": "By continuing, you agree to our",
+        "terms": "Terms of Service",
+        "and": "and",
+        "privacy": "Privacy Policy"
+      },
+      "sent": {
+        "title": "Email sent!",
+        "description_before": "We’ve sent an email to <email/>",
+        "description_after": ". Please check your inbox and follow the instructions.",
+        "close": "Close"
+      }
+    },
+    "errors": {
+      "requiredEmail": "Введите email",
+      "invalidEmail": "Некорректный email",
+      "requiredPassword": "Введите пароль",
+      "minPassword": "Минимум 6 символов",
+      "authFailed": "Неверный email или пароль"
+    }
   },
   "userMenu": {
     "upgrade": "Upgrade to Pro",

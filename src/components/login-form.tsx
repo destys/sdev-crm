@@ -1,9 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,9 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
+import { useDialogStore } from "@/store/use-dialog-store";
+
+import { ForgotPasswordModal } from "./modals/forgot-password-modal";
 
 export function LoginForm({
   className,
@@ -24,52 +29,63 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const t = useTranslations("auth");
   const router = useRouter();
+  const { openDialog } = useDialogStore();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [csrf, setCsrf] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // ⚙️ Локализованная схема валидации
+  const loginSchema = z.object({
+    email: z.email(t("errors.invalidEmail")),
+    password: z.string(t("errors.requiredPassword")),
+  });
 
-  // 🔐 получаем CSRF токен при загрузке
-  useEffect(() => {
-    fetch("/api/auth/csrf")
-      .then((r) => r.json())
-      .then((d) => setCsrf(d.token))
-      .catch(() => setCsrf(""));
-  }, []);
+  type LoginFormData = z.infer<typeof loginSchema>;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-    const r = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-csrf-token": csrf,
-      },
-      body: JSON.stringify({ identifier: email, password }),
-    });
+  // 🔐 submit handler
+  const onSubmit = async (values: LoginFormData) => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    const data = await r.json().catch(() => ({}));
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || t("errors.authFailed"));
+      }
 
-    if (!r.ok) {
-      setError(data.error || "Login failed");
-      setLoading(false);
-      return;
+      // ✅ redirect to dashboard
+      const locale = window.location.pathname.split("/")[1];
+      router.replace(`/${locale}/dashboard`);
+      reset();
+    } catch (err: unknown) {
+      console.error("Login error:", err);
     }
+  };
 
-    // ✅ если успех — редиректим на /[locale]/(app)/dashboard
-    router.replace(`/${window.location.pathname.split("/")[1]}/dashboard`);
-  }
+  const openForgotModal = () => {
+    openDialog({
+      content: <ForgotPasswordModal />,
+    });
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
+          <form
+            className="p-6 md:p-8"
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+          >
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">{t("welcome")}</h1>
@@ -78,51 +94,64 @@ export function LoginForm({
                 </p>
               </div>
 
+              {/* Email */}
               <Field>
                 <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="m@example.com"
-                  required
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </Field>
 
+              {/* Password */}
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="ml-auto text-sm"
+                    onClick={openForgotModal}
                   >
                     {t("forgot")}
-                  </a>
+                  </Button>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </Field>
 
-              {error && (
-                <p className="text-sm text-destructive mt-1">{error}</p>
-              )}
-
+              {/* Submit */}
               <Field>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "..." : t("login")}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full"
+                >
+                  {isSubmitting ? t("loading") : t("login")}
                 </Button>
               </Field>
 
+              {/* OR */}
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 {t("or")}
               </FieldSeparator>
 
+              {/* Socials */}
               <Field className="grid grid-cols-3 gap-4">
                 <Button variant="outline" type="button" disabled>
                   <span className="sr-only">Apple</span>
@@ -136,6 +165,7 @@ export function LoginForm({
                 </Button>
               </Field>
 
+              {/* Signup link */}
               <FieldDescription className="text-center">
                 {t("noAccount")}{" "}
                 <Link href="/sign-up" className="underline">
@@ -145,6 +175,7 @@ export function LoginForm({
             </FieldGroup>
           </form>
 
+          {/* Right side image */}
           <div className="bg-muted relative hidden md:block">
             <Image
               src="/signin.png"
@@ -156,7 +187,8 @@ export function LoginForm({
         </CardContent>
       </Card>
 
-      <FieldDescription className="px-6 text-center">
+      {/* Terms */}
+      <FieldDescription className="px-6 text-center text-sm">
         {t("terms1")}{" "}
         <a href="#" className="underline">
           {t("terms2")}

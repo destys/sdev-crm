@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppDialog } from "@/components/app-dialog";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -34,6 +35,7 @@ export default async function RootLayout({ children, params }: Props) {
             disableTransitionOnChange
           >
             {children}
+            <AppDialog />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
