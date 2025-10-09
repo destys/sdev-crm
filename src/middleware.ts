@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
@@ -12,8 +13,11 @@ const intlMiddleware = createMiddleware(routing);
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const locale = pathname.split("/")[1] || "en";
 
-  // 1️⃣ Пропускаем служебные пути и статику
+  console.log("🧩 Middleware fired:", { pathname, token, locale });
+
+  // Пропускаем системные пути
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
@@ -23,32 +27,29 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Применяем i18n
-  const res = intlMiddleware(req);
-  const locale = req.nextUrl.pathname.split("/")[1] || "en";
+  const intlResponse = intlMiddleware(req);
 
-  // 3️⃣ Зоны (Next.js не видит группировку (app)/(auth))
   const isAuthPage = pathname.match(/^\/(ru|en)\/sign-(in|up)/);
   const isAppPage = pathname.match(/^\/(ru|en)\/dashboard(\/.*)?$/);
   const isRootPage = pathname.match(/^\/(ru|en)\/?$/);
 
-  // 4️⃣ Если пользователь не авторизован — редирект на sign-in
   if ((isAppPage || isRootPage) && !token) {
     const url = req.nextUrl.clone();
     url.pathname = `/${locale}/sign-in`;
+    console.log("➡️ Redirect to sign-in:", url.pathname);
     return NextResponse.redirect(url);
   }
 
-  // 5️⃣ Если уже авторизован и идёт на sign-in — редиректим в dashboard
   if (isAuthPage && token) {
     const url = req.nextUrl.clone();
     url.pathname = `/${locale}/dashboard`;
+    console.log("➡️ Redirect to dashboard:", url.pathname);
     return NextResponse.redirect(url);
   }
 
-  return res ?? NextResponse.next();
+  return intlResponse ?? NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|trpc|_next|_vercel|.*\\..*).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
