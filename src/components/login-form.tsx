@@ -78,7 +78,7 @@ export function LoginForm({
 
       // ✅ redirect to dashboard
       const locale = window.location.pathname.split("/")[1];
-      router.replace(`/${locale}/dashboard`);
+      router.replace(`/${locale}`);
       reset();
     } catch (err: unknown) {
       console.error("Login error:", err);
