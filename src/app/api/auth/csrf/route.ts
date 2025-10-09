@@ -1,11 +1,10 @@
+import crypto from "crypto";
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-// ⚠️ Simple CSRF token generator (cryptographically strong random)
 function randomToken(bytes = 32) {
-  return Buffer.from(crypto.getRandomValues(new Uint8Array(bytes))).toString(
-    "base64url"
-  );
+  return crypto.randomBytes(bytes).toString("base64url");
 }
 
 export async function GET() {

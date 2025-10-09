@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -22,6 +23,7 @@ import { Link } from "@/i18n/navigation";
 import { useDialogStore } from "@/store/use-dialog-store";
 
 import { ForgotPasswordModal } from "./modals/forgot-password-modal";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function LoginForm({
   className,
@@ -30,10 +32,18 @@ export function LoginForm({
   const t = useTranslations("auth");
   const router = useRouter();
   const { openDialog } = useDialogStore();
+  const [csrf, setCsrf] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/csrf", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => setCsrf(d.token))
+      .catch(() => setCsrf(""));
+  }, []);
 
   // ⚙️ Локализованная схема валидации
   const loginSchema = z.object({
-    email: z.email(t("errors.invalidEmail")),
+    identifier: z.email(t("errors.invalidEmail")),
     password: z.string(t("errors.requiredPassword")),
   });
 
@@ -53,7 +63,11 @@ export function LoginForm({
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrf,
+        },
+        credentials: "include", // ✅ обязательно
         body: JSON.stringify(values),
       });
 
@@ -86,6 +100,7 @@ export function LoginForm({
             onSubmit={handleSubmit(onSubmit)}
             noValidate
           >
+            <LanguageSwitcher />
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">{t("welcome")}</h1>
@@ -101,11 +116,11 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  {...register("email")}
+                  {...register("identifier")}
                 />
-                {errors.email && (
+                {errors.identifier && (
                   <p className="text-sm text-destructive mt-1">
-                    {errors.email.message}
+                    {errors.identifier.message}
                   </p>
                 )}
               </Field>

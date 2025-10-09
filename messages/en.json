@@ -9,6 +9,7 @@
     "password": "Password",
     "forgot": "Forgot your password?",
     "login": "Login",
+    "loading": "Login...",
     "or": "Or continue with",
     "noAccount": "Don't have an account?",
     "signup": "Sign up",
