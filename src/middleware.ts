@@ -10,6 +10,9 @@ import { routing } from "./i18n/routing";
 const AUTH_COOKIE_NAME =
   process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "cf_session";
 
+/**
+ * Подключаем next-intl middleware для определения локали.
+ */
 const intlMiddleware = createMiddleware(routing);
 
 export default function middleware(req: NextRequest) {
@@ -17,13 +20,12 @@ export default function middleware(req: NextRequest) {
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
 
   /**
-   * 🧩 У тебя есть две локали: ru и en
-   * Но английская — без префикса (/)
+   * 🌍 Проверяем, указана ли локаль в URL
+   * (например, /en/... или /ru/...)
    */
-  const isRu = pathname.startsWith("/ru");
-  const locale = isRu ? "ru" : "en";
+  const hasLocalePrefix = /^\/(ru|en)(\/|$)/.test(pathname);
 
-  // 1️⃣ Пропускаем системные и статические пути
+  // 1️⃣ Пропускаем API, Next.js и статику
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
@@ -33,33 +35,34 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Подключаем i18n middleware
+  // 2️⃣ Если локаль не указана — редиректим на дефолтную (например, en)
+  if (!hasLocalePrefix) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/en${pathname}`;
+    return NextResponse.redirect(url);
+  }
+
+  // 3️⃣ Пропускаем локализацию через next-intl
   const intlResponse = intlMiddleware(req);
 
-  // 3️⃣ Определяем публичные страницы
-  const isAuthPage = isRu
-    ? /^\/ru\/sign-(in|up)/.test(pathname)
-    : /^\/sign-(in|up)/.test(pathname);
+  // 4️⃣ Определяем публичные страницы (auth)
+  const isAuthPage = /^\/(ru|en)\/sign-(in|up)/.test(pathname);
 
-  const isRootPage = isRu
-    ? /^\/ru(\/)?$/.test(pathname)
-    : /^\/$/.test(pathname);
-
-  // 4️⃣ Если нет токена и это не auth-страница → редиректим на /sign-in
+  // 5️⃣ Если пользователь не авторизован и идёт не на auth → редиректим на sign-in
   if (!token && !isAuthPage) {
     const url = req.nextUrl.clone();
-    url.pathname = isRu ? "/ru/sign-in" : "/sign-in";
+    url.pathname = pathname.startsWith("/ru") ? "/ru/sign-in" : "/en/sign-in";
     return NextResponse.redirect(url);
   }
 
-  // 5️⃣ Если токен есть и пользователь на sign-in / sign-up → редиректим на главную
+  // 6️⃣ Если авторизован и находится на sign-in / sign-up → на главную
   if (token && isAuthPage) {
     const url = req.nextUrl.clone();
-    url.pathname = isRu ? "/ru" : "/";
+    url.pathname = pathname.startsWith("/ru") ? "/ru" : "/en";
     return NextResponse.redirect(url);
   }
 
-  // 6️⃣ Всё остальное пропускаем
+  // 7️⃣ Всё остальное — пропускаем
   return intlResponse ?? NextResponse.next();
 }
 
