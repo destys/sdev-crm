@@ -11,7 +11,6 @@ import qs from "qs";
 import type { ClientProps, UpdateClientDto } from "@/types/client.types";
 import type { FetchOptionsProps } from "@/types/fetch-options.type";
 
-/* ------------------------------- Types ------------------------------- */
 interface ClientListResponse {
   clients: ClientProps[];
   total: number;
@@ -21,31 +20,30 @@ interface OptimisticContext {
   previous?: ClientListResponse;
 }
 
-/* ---------------------------- useClients ----------------------------- */
-/**
- * Хук для работы с клиентами
- * -------------------------------------------------
- * Поддерживает:
- *  - получение списка (с пагинацией, фильтрацией, сортировкой)
- *  - получение одного клиента
- *  - создание / обновление / удаление
- *  - оптимистические апдейты и ревалидацию кеша
- */
 export const useClients = (options?: FetchOptionsProps) => {
   const queryClient = useQueryClient();
 
-  /* -------------------------- Query utils -------------------------- */
-  const queryKey = ["clients", options];
-
+  /* ---------------------- Стабильный ключ + строка ---------------------- */
   const queryString = qs.stringify(options, {
     encodeValuesOnly: true,
     skipNulls: true,
+    sort: (a, b) => a.localeCompare(b),
   });
 
-  const invalidateClients = () =>
-    queryClient.invalidateQueries({ queryKey: ["clients"], exact: false });
+  const queryKey = ["clients", queryString] as const;
 
-  /* -------------------------- GET: all clients -------------------------- */
+  const refetchClients = async () => {
+    await queryClient.invalidateQueries({
+      predicate: (q) =>
+        Array.isArray(q.queryKey) && q.queryKey[0] === "clients",
+    });
+    await queryClient.refetchQueries({
+      predicate: (q) =>
+        Array.isArray(q.queryKey) && q.queryKey[0] === "clients",
+    });
+  };
+
+  /* ------------------------------- LIST ------------------------------- */
   const clientsQuery = useQuery<ClientListResponse, Error>({
     queryKey,
     queryFn: async () => {
@@ -55,10 +53,13 @@ export const useClients = (options?: FetchOptionsProps) => {
       if (!res.ok) throw new Error("Не удалось получить список клиентов");
       return res.json();
     },
-    staleTime: 1000 * 30, // UX-оптимизация (30 сек)
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
   });
 
-  /* -------------------------- GET: one client -------------------------- */
+  /* ------------------------------ DETAIL ------------------------------ */
   const useClient = (documentId?: string): UseQueryResult<ClientProps, Error> =>
     useQuery<ClientProps, Error>({
       queryKey: ["client", documentId],
@@ -70,9 +71,13 @@ export const useClients = (options?: FetchOptionsProps) => {
         if (!res.ok) throw new Error("Не удалось получить клиента");
         return res.json();
       },
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
     });
 
-  /* -------------------------- CREATE -------------------------- */
+  /* ------------------------------ CREATE ------------------------------ */
+  /* ------------------------------ CREATE ------------------------------ */
   const createClient = useMutation<
     ClientProps,
     Error,
@@ -91,17 +96,18 @@ export const useClients = (options?: FetchOptionsProps) => {
 
     onMutate: async (newClient) => {
       await queryClient.cancelQueries({ queryKey });
+
       const previous = queryClient.getQueryData<ClientListResponse>(queryKey);
 
       if (previous) {
+        // 🔹 Добавляем клиента моментально
+        const optimisticClient: ClientProps = {
+          ...(newClient as ClientProps),
+          documentId: `temp-${Date.now()}`,
+        };
+
         queryClient.setQueryData<ClientListResponse>(queryKey, {
-          clients: [
-            {
-              ...newClient,
-              documentId: `temp-${Date.now()}`,
-            } as ClientProps,
-            ...previous.clients,
-          ],
+          clients: [optimisticClient, ...previous.clients],
           total: previous.total + 1,
         });
       }
@@ -110,13 +116,29 @@ export const useClients = (options?: FetchOptionsProps) => {
     },
 
     onError: (_err, _newClient, ctx) => {
+      // 🔹 Если ошибка — возвращаем предыдущий список
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
     },
 
-    onSettled: invalidateClients,
+    onSuccess: async (createdClient) => {
+      // 🔹 Заменяем временный элемент настоящим (чтобы избежать “двойников”)
+      const prev = queryClient.getQueryData<ClientListResponse>(queryKey);
+      if (prev) {
+        queryClient.setQueryData<ClientListResponse>(queryKey, {
+          ...prev,
+          clients: [
+            createdClient,
+            ...prev.clients.filter((c) => !c.documentId?.startsWith("temp-")),
+          ],
+        });
+      }
+
+      // 🔹 Через 300 мс рефетчим с сервера для точной синхронизации
+      setTimeout(refetchClients, 300);
+    },
   });
 
-  /* -------------------------- UPDATE -------------------------- */
+  /* ------------------------------ UPDATE ------------------------------ */
   const updateClient = useMutation<
     ClientProps,
     Error,
@@ -136,16 +158,14 @@ export const useClients = (options?: FetchOptionsProps) => {
     onMutate: async ({ documentId, data }) => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<ClientListResponse>(queryKey);
-
       if (previous) {
         queryClient.setQueryData<ClientListResponse>(queryKey, {
           ...previous,
           clients: previous.clients.map((c) =>
-            String(c.documentId) === documentId ? { ...c, ...data } : c
+            c.documentId === documentId ? { ...c, ...data } : c
           ),
         });
       }
-
       return { previous };
     },
 
@@ -153,13 +173,13 @@ export const useClients = (options?: FetchOptionsProps) => {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
     },
 
-    onSettled: invalidateClients,
+    onSettled: refetchClients,
   });
 
-  /* -------------------------- DELETE -------------------------- */
+  /* ------------------------------ DELETE ------------------------------ */
   const deleteClient = useMutation<boolean, Error, string, OptimisticContext>({
-    mutationFn: async (id) => {
-      const res = await fetch(`/api/clients/${id}`, {
+    mutationFn: async (documentId) => {
+      const res = await fetch(`/api/clients/${documentId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Ошибка при удалении клиента");
@@ -169,16 +189,12 @@ export const useClients = (options?: FetchOptionsProps) => {
     onMutate: async (documentId) => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<ClientListResponse>(queryKey);
-
       if (previous) {
         queryClient.setQueryData<ClientListResponse>(queryKey, {
-          clients: previous.clients.filter(
-            (c) => String(c.documentId) !== documentId
-          ),
+          clients: previous.clients.filter((c) => c.documentId !== documentId),
           total: previous.total - 1,
         });
       }
-
       return { previous };
     },
 
@@ -186,22 +202,19 @@ export const useClients = (options?: FetchOptionsProps) => {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
     },
 
-    onSettled: invalidateClients,
+    onSuccess: async () => {
+      // 💥 Только после успешного удаления с сервера
+      await refetchClients();
+    },
   });
 
-  /* -------------------------- Return API -------------------------- */
   return {
-    // list
     clients: clientsQuery.data?.clients ?? [],
     total: clientsQuery.data?.total,
     isLoading: clientsQuery.isLoading,
     isError: clientsQuery.isError,
     error: clientsQuery.error,
-
-    // single client
     useClient,
-
-    // mutations
     createClient: createClient.mutateAsync,
     updateClient: updateClient.mutateAsync,
     deleteClient: deleteClient.mutateAsync,

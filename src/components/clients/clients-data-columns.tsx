@@ -1,29 +1,25 @@
-"use client";
-
+import { Loader2Icon, Edit2Icon, LinkIcon, Trash2Icon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit2Icon, LinkIcon, Trash2Icon } from "lucide-react";
 
-import type { ClientProps } from "@/types/client.types";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import type { ClientProps } from "@/types/client.types";
 
 /**
  * Тип функции перевода из next-intl
- * useTranslations("clients") возвращает такую же сигнатуру
  */
 type TranslationFn = (key: string, values?: Record<string, string>) => string;
 
-/**
- * Фабрика колонок для таблицы клиентов с i18n
- */
 export const getClientColumns = ({
   t,
   onEdit,
   onDelete,
+  deletingId,
 }: {
   t: TranslationFn;
   onEdit?: (clientId: string) => void;
   onDelete?: (clientId: string) => void;
+  deletingId?: string | null;
 }): ColumnDef<ClientProps>[] => [
   {
     accessorKey: "name",
@@ -58,34 +54,38 @@ export const getClientColumns = ({
     header: () => "",
     cell: ({ row }) => {
       const client = row.original;
+      const isDeleting = deletingId === client.documentId;
+
       return (
         <div className="flex gap-2 justify-end">
           <Button
             size="icon"
             variant="outline"
+            disabled={isDeleting}
             onClick={() => onEdit?.(client.documentId)}
             title={t("actions.edit")}
           >
             <Edit2Icon className="h-4 w-4" />
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => onEdit?.(client.documentId)}
-            title={t("actions.edit")}
-            asChild
-          >
+
+          <Button size="icon" variant="outline" disabled={isDeleting} asChild>
             <Link href={`/clients/${client.documentId}`}>
               <LinkIcon className="h-4 w-4" />
             </Link>
           </Button>
+
           <Button
             size="icon"
-            variant="destructive"
+            variant={isDeleting ? "outline" : "destructive"}
             onClick={() => onDelete?.(client.documentId)}
+            disabled={isDeleting}
             title={t("actions.delete")}
           >
-            <Trash2Icon className="h-4 w-4" />
+            {isDeleting ? (
+              <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Trash2Icon className="h-4 w-4" />
+            )}
           </Button>
         </div>
       );

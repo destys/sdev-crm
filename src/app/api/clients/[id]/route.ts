@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -8,13 +8,17 @@ const AUTH_COOKIE_NAME =
 /**
  * 📄 Получить одного клиента
  */
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise!
+) {
+  const { id } = await params;
   try {
     const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
     if (!token)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const r = await fetch(`${API_URL}/api/clients/${params.id}`, {
+    const r = await fetch(`${API_URL}/api/clients/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -25,7 +29,6 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
         { status: r.status }
       );
 
-    // В v5 data — объект клиента
     return NextResponse.json(data.data);
   } catch (err) {
     console.error("Proxy /api/clients/[id] GET error:", err);
@@ -33,10 +36,15 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
+/**
+ * ✏️ Обновить клиента
+ */
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise!
 ) {
+  const { id } = await params;
+
   try {
     const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
     if (!token)
@@ -44,7 +52,7 @@ export async function PUT(
 
     const body = await req.json();
 
-    const r = await fetch(`${API_URL}/api/clients/${params.id}`, {
+    const r = await fetch(`${API_URL}/api/clients/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -67,11 +75,15 @@ export async function PUT(
   }
 }
 
+/**
+ * ❌ Удалить клиента
+ */
 export async function DELETE(
-  _: Request,
-  { params }: { params: Promise<{ id: string }> }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise!
 ) {
   const { id } = await params;
+
   try {
     const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
     if (!token)

@@ -13,7 +13,6 @@ export async function GET(req: Request) {
     const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
     if (!token)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const { searchParams } = new URL(req.url);
     const query = searchParams.toString();
 
@@ -31,8 +30,8 @@ export async function GET(req: Request) {
 
     // Strapi v5 возвращает data как массив готовых объектов
     return NextResponse.json({
-      clients: data.data.results ?? [],
-      total: data.data.pagination.total,
+      clients: data.results ?? [],
+      total: data.pagination.total,
     });
   } catch (err) {
     console.error("Proxy /api/clients GET error:", err);

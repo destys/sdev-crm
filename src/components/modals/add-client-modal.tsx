@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useSheet } from "@/store/use-sheet";
+import { useClients } from "@/hooks/use-clients";
+import { useDialogStore } from "@/store/use-dialog-store";
 
 /* ---------------- Schema ---------------- */
 const formSchema = z.object({
@@ -32,7 +34,8 @@ export type AddClientFormValues = z.infer<typeof formSchema>;
 /* ---------------- Component ---------------- */
 export const AddClientModal = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { closeSheet } = useSheet();
+  const { closeDialog } = useDialogStore();
+  const { createClient } = useClients();
 
   const form = useForm<AddClientFormValues>({
     resolver: zodResolver(formSchema),
@@ -47,23 +50,11 @@ export const AddClientModal = () => {
   async function handleSubmit(values: AddClientFormValues) {
     try {
       setIsLoading(true);
-
-      const res = await fetch("/api/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error || "Не удалось добавить клиента");
-      }
-
+      await createClient(values);
       toast.success("Клиент успешно добавлен");
       form.reset();
-      closeSheet(); // закрываем модалку / шторку
+      closeDialog();
     } catch (error) {
-      console.error("Ошибка при добавлении клиента:", error);
       toast.error("Ошибка при добавлении клиента", {
         description: error instanceof Error ? error.message : String(error),
       });
@@ -137,15 +128,6 @@ export const AddClientModal = () => {
         <div className="flex flex-col space-y-4 mt-auto">
           <Button type="submit" disabled={isLoading}>
             {isLoading ? <Spinner /> : "Добавить клиента"}
-          </Button>
-
-          <Button
-            variant="secondary"
-            type="button"
-            onClick={closeSheet}
-            disabled={isLoading}
-          >
-            Закрыть
           </Button>
         </div>
       </form>

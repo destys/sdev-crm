@@ -31,8 +31,7 @@ import { EditClientForm } from "./edit-client-form";
 
 export const ClientsPageContent = () => {
   const t = useTranslations("clients");
-
-  /** 🔹 Локальное состояние пагинации */
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
