@@ -1,79 +1,232 @@
-import { GalleryVerticalEnd } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useTranslations } from "next-intl";
+import { GalleryVerticalEnd, CheckCircle2, AlertCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import { useAuth } from "@/store/use-auth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://saas-crm.some-dev.com";
+
+export function SignupForm({ className }: { className?: string }) {
+  const t = useTranslations("signup");
+  const { login } = useAuth();
+  const router = useRouter();
+
+  // ⚡ alert state
+  const [alert, setAlert] = useState<{
+    type: "success" | "error" | null;
+    message: string | null;
+  }>({ type: null, message: null });
+
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // 🧩 Схема валидации (локализованная)
+  const formSchema = z
+    .object({
+      email: z.string().email(t("errors.invalidEmail")),
+      password: z.string().min(6, t("errors.minPassword")),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("errors.passwordMismatch"),
+      path: ["confirmPassword"],
+    });
+
+  type SignupFormValues = z.infer<typeof formSchema>;
+
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  // ⏱️ Обратный отсчёт (3,2,1 → redirect)
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) {
+      router.replace("/");
+      return;
+    }
+    const timer = setTimeout(
+      () => setCountdown((prev) => (prev ?? 0) - 1),
+      1000
+    );
+    return () => clearTimeout(timer);
+  }, [countdown, router]);
+
+  const onSubmit = async (values: SignupFormValues) => {
+    setAlert({ type: null, message: null });
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/local/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          username: values.email.split("@")[0],
+          password: values.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data?.error?.message || t("alerts.errorDefault"));
+
+      await login({
+        email: values.email,
+        password: values.password,
+      });
+
+      form.reset();
+
+      // ✅ Успешное уведомление + таймер
+      setAlert({
+        type: "success",
+        message: t("alerts.success"),
+      });
+      setCountdown(3);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Signup error:", err);
+
+      setAlert({
+        type: "error",
+        message: err?.message || t("alerts.errorDefault"),
+      });
+    }
+  };
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form>
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <a
-              href="#"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEnd className="size-6" />
-              </div>
-              <span className="sr-only">Acme Inc.</span>
-            </a>
-            <h1 className="text-xl font-bold">Welcome to Acme Inc.</h1>
-            <FieldDescription>
-              Already have an account? <Link href="/sign-in">Sign in</Link>
-            </FieldDescription>
+    <div className={cn("flex flex-col gap-6", className)}>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="flex size-8 items-center justify-center rounded-md">
+              <GalleryVerticalEnd className="size-6" />
+            </div>
+            <h1 className="mt-2 text-xl font-bold">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground">
+              {t("alreadyHave")} <Link href="/sign-in">{t("signIn")}</Link>
+            </p>
           </div>
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-            />
-          </Field>
-          <Field>
-            <Button type="submit">Create Account</Button>
-          </Field>
-          <FieldSeparator>Or</FieldSeparator>
-          <Field className="grid gap-4 sm:grid-cols-2">
-            <Button variant="outline" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                  d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                  fill="currentColor"
-                />
-              </svg>
-              Continue with Apple
-            </Button>
-            <Button variant="outline" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                  d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                  fill="currentColor"
-                />
-              </svg>
-              Continue with Google
-            </Button>
-          </Field>
-        </FieldGroup>
-      </form>
-      <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
+
+          {/* ✅ Alert messages */}
+          {alert.type && (
+            <Alert
+              variant={alert.type === "error" ? "destructive" : "default"}
+              className="mb-6 transition-all"
+            >
+              {alert.type === "error" ? (
+                <AlertCircle className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              )}
+              <AlertTitle>
+                {alert.type === "error"
+                  ? t("alerts.errorTitle")
+                  : t("alerts.successTitle")}
+              </AlertTitle>
+              <AlertDescription>
+                {alert.message}
+                {alert.type === "success" && countdown !== null && (
+                  <span className="ml-2 text-muted-foreground">
+                    ({t("alerts.redirectIn", { seconds: countdown })})
+                  </span>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("email")}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="m@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("password")}</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("confirmPassword")}</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? t("loading") : t("signup")}
+              </Button>
+
+              <FormDescription className="text-center mt-6 text-sm text-muted-foreground">
+                {t("terms1")}{" "}
+                <a href="#" className="underline">
+                  {t("terms2")}
+                </a>{" "}
+                {t("and")}{" "}
+                <a href="#" className="underline">
+                  {t("privacy")}
+                </a>
+                .
+              </FormDescription>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

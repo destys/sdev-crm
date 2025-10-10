@@ -40,12 +40,39 @@
         "close": "Close"
       }
     },
+
     "errors": {
       "requiredEmail": "Введите email",
       "invalidEmail": "Некорректный email",
       "requiredPassword": "Введите пароль",
       "minPassword": "Минимум 6 символов",
       "authFailed": "Неверный email или пароль"
+    }
+  },
+  "signup": {
+    "title": "Sign up",
+    "alreadyHave": "Already have an account?",
+    "signIn": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "signup": "Create account",
+    "loading": "Signing up...",
+    "terms1": "By clicking continue, you agree to our",
+    "terms2": "Terms of Service",
+    "and": "and",
+    "privacy": "Privacy Policy",
+    "errors": {
+      "invalidEmail": "Invalid email",
+      "minPassword": "Minimum 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "redirectIn": "redirecting in {seconds}s"
+    },
+    "alerts": {
+      "successTitle": "Success",
+      "errorTitle": "Error",
+      "success": "You have successfully registered! Welcome 👋",
+      "errorDefault": "Something went wrong. Please try again later."
     }
   },
   "userMenu": {
@@ -57,5 +84,68 @@
   },
   "lang": {
     "language": "Language"
+  },
+  "sidebar": {
+    "dashboard": {
+      "title": "Dashboard"
+    },
+    "clients": {
+      "title": "Clients",
+      "list": "All clients",
+      "new": "Add client"
+    },
+    "leads": {
+      "title": "Leads"
+    },
+    "projects": {
+      "title": "Projects"
+    },
+    "calls": {
+      "title": "Calls"
+    },
+    "finance": {
+      "title": "Finance",
+      "income": "Income",
+      "expenses": "Expenses",
+      "reports": "Reports"
+    },
+    "assistant": {
+      "title": "AI Assistant"
+    },
+    "settings": {
+      "title": "Settings",
+      "profile": "Profile",
+      "billing": "Billing",
+      "notifications": "Notifications"
+    },
+    "support": {
+      "title": "Support"
+    },
+    "feedback": {
+      "title": "Feedback"
+    }
+  },
+  "clients": {
+    "columns": {
+      "name": "Name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "Phone",
+      "projects": "Projects"
+    },
+    "actions": {
+      "edit": "Edit client",
+      "delete": "Delete client",
+      "cancel": "Cancel",
+      "confirmDeleteTitle": "Delete client?",
+      "confirmDeleteDescription": "This action cannot be undone. The client and all related data will be permanently deleted."
+    },
+    "notifications": {
+      "deleteSuccess": "Client deleted successfully",
+      "deleteError": "Error deleting client",
+      "cancelDelete": "Deletion canceled",
+      "editNotImplemented": "Edit function is not implemented yet",
+      "clientId": "Client ID"
+    }
   }
 }

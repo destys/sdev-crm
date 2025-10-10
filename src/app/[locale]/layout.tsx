@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import "../globals.css";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "sonner";
 
 import { routing } from "@/i18n/routing";
-import { ThemeProvider } from "@/components/theme-provider";
 import { AppDialog } from "@/components/app-dialog";
+import { Providers } from "@/components/providers";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { AppSheet } from "@/components/app-sheet";
 
 export const metadata: Metadata = {
   title: "CRM SomeDev",
@@ -28,15 +32,14 @@ export default async function RootLayout({ children, params }: Props) {
     <html lang={locale} suppressHydrationWarning>
       <body className={`antialiased`}>
         <NextIntlClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          <Providers>
             {children}
             <AppDialog />
-          </ThemeProvider>
+            <ConfirmDialog />
+            <Toaster />
+            <AppSheet />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
-  BookOpen,
+  LayoutDashboard,
+  Users,
+  MessagesSquare,
+  Briefcase,
+  Phone,
+  Wallet,
   Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
   Settings2,
-  SquareTerminal,
-} from "lucide-react"
+  LifeBuoy,
+  Send,
+} from "lucide-react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -26,133 +27,90 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+} from "@/components/ui/sidebar";
+import { Link } from "@/i18n/navigation";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const t = useTranslations("sidebar");
+  const data = {
+    user: {
+      name: "Some Dev",
+      email: "support@some-dev.com",
+      avatar: "/avatars/user.png",
+    },
+    navMain: [
+      {
+        title: t("dashboard.title"),
+        url: "/",
+        icon: LayoutDashboard,
+      },
+      {
+        title: t("clients.title"),
+        url: "/clients",
+        icon: Users,
+        items: [
+          { title: t("clients.list"), url: "/clients" },
+          { title: t("clients.new"), url: "/clients/new" },
+        ],
+      },
+      {
+        title: t("leads.title"),
+        url: "/leads",
+        icon: MessagesSquare,
+      },
+      {
+        title: t("projects.title"),
+        url: "/projects",
+        icon: Briefcase,
+      },
+      {
+        title: t("calls.title"),
+        url: "/calls",
+        icon: Phone,
+      },
+      {
+        title: t("finance.title"),
+        url: "/finance",
+        icon: Wallet,
+        items: [
+          { title: t("finance.income"), url: "/finance/income" },
+          { title: t("finance.expenses"), url: "/finance/expenses" },
+          { title: t("finance.reports"), url: "/finance/reports" },
+        ],
+      },
+      {
+        title: t("assistant.title"),
+        url: "/assistant",
+        icon: Bot,
+      },
+      {
+        title: t("settings.title"),
+        url: "/settings",
+        icon: Settings2,
+        items: [
+          { title: t("settings.profile"), url: "/settings/profile" },
+          { title: t("settings.billing"), url: "/settings/billing" },
+          {
+            title: t("settings.notifications"),
+            url: "/settings/notifications",
+          },
+        ],
+      },
+    ],
+    navSecondary: [
+      {
+        title: t("support.title"),
+        url: "/support",
+        icon: LifeBuoy,
+      },
+      {
+        title: t("feedback.title"),
+        url: "/feedback",
+        icon: Send,
+      },
+    ],
+  };
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -162,27 +120,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
+              <Link href="/">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg p-1">
+                  <Image
+                    src={"/small-logo.svg"}
+                    alt="SomeDev Logo"
+                    width={48}
+                    height={48}
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <span className="truncate font-medium">Some-Dev</span>
+                  <span className="truncate text-xs">CRM</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

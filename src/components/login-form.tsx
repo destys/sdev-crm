@@ -16,7 +16,6 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
@@ -162,12 +161,12 @@ export function LoginForm({
               </Field>
 
               {/* OR */}
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+              {/* <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 {t("or")}
-              </FieldSeparator>
+              </FieldSeparator> */}
 
               {/* Socials */}
-              <Field className="grid grid-cols-3 gap-4">
+              {/* <Field className="grid grid-cols-3 gap-4">
                 <Button variant="outline" type="button" disabled>
                   <span className="sr-only">Apple</span>
                 </Button>
@@ -189,7 +188,7 @@ export function LoginForm({
                   </svg>
                   GitHub
                 </Button>
-              </Field>
+              </Field> */}
 
               {/* Signup link */}
               <FieldDescription className="text-center">
