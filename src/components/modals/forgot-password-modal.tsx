@@ -112,7 +112,6 @@ export const ForgotPasswordModal = ({
               <Button
                 variant={"link"}
                 className="text-primary font-medium hover:underline"
-                onClick={closeDialog}
                 type="button"
               >
                 {t("loginLink")}
@@ -130,9 +129,7 @@ export const ForgotPasswordModal = ({
             {t("sent.description_before")} <strong>{sentEmail}</strong>{" "}
             {t("sent.description_after")}
           </p>
-          <Button onClick={closeDialog} className="mt-2">
-            {t("sent.close")}
-          </Button>
+          <Button className="mt-2">{t("sent.close")}</Button>
         </div>
       )}
 

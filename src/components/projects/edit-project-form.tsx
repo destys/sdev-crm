@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ClientProps } from "@/types/client.types";
+import { ProjectProps } from "@/types/project.types";
 
 import {
   Form,
@@ -20,17 +20,14 @@ import {
 import { Spinner } from "../ui/spinner";
 
 const formSchema = z.object({
-  name: z.string(),
-  company: z.string().optional(),
-  phone: z.string(),
-  email: z.email(),
+  title: z.string(),
 });
 
-export const EditClientForm = ({
-  client,
+export const EditProjectForm = ({
+  project,
   onSubmit,
 }: {
-  client: ClientProps;
+  project: ProjectProps;
   onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,10 +35,7 @@ export const EditClientForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: client.name,
-      company: client.company,
-      phone: client.phone,
-      email: client.email,
+      title: project.title,
     },
   });
 
@@ -64,51 +58,12 @@ export const EditClientForm = ({
       >
         <FormField
           control={form.control}
-          name="name"
+          name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Имя клиента</FormLabel>
+              <FormLabel>Название проекта</FormLabel>
               <FormControl>
                 <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Компания</FormLabel>
-              <FormControl>
-                <Input placeholder="Компания" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Телефон</FormLabel>
-              <FormControl>
-                <Input type="tel" placeholder="Телефон" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

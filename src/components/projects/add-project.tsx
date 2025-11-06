@@ -3,20 +3,20 @@ import { PlusCircleIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useDialogStore } from "@/store/use-dialog-store";
-import { AddClientModal } from "@/components/modals/add-client-modal";
+import { AddProjectModal } from "@/components/modals/add-project-modal";
 
-export const AddClient = () => {
+export const AddProject = () => {
   const { openDialog } = useDialogStore();
   return (
     <Button
       onClick={() =>
         openDialog({
-          content: <AddClientModal />,
+          content: <AddProjectModal />,
         })
       }
     >
       <PlusCircleIcon />
-      Add Client
+      Add Project
     </Button>
   );
 };

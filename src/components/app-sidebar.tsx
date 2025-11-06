@@ -12,6 +12,7 @@ import {
   Settings2,
   LifeBuoy,
   Send,
+  PlusCircleIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -29,9 +30,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link } from "@/i18n/navigation";
+import { useDialogStore } from "@/store/use-dialog-store";
+
+import { AddClientModal } from "./modals/add-client-modal";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const t = useTranslations("sidebar");
+  const { openDialog } = useDialogStore();
   const data = {
     user: {
       name: "Some Dev",
@@ -49,8 +54,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/clients",
         icon: Users,
         items: [
+          {
+            title: t("clients.new"),
+            icon: PlusCircleIcon,
+            onClick: () =>
+              openDialog({
+                content: <AddClientModal />,
+              }),
+          },
           { title: t("clients.list"), url: "/clients" },
-          { title: t("clients.new"), url: "/clients/new" },
         ],
       },
       {

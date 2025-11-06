@@ -16,24 +16,28 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.toString();
 
-    const r = await fetch(`${API_URL}/api/clients${query ? `?${query}` : ""}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const r = await fetch(
+      `${API_URL}/api/projects${query ? `?${query}` : ""}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     const data = await r.json();
+
     if (!r.ok)
       return NextResponse.json(
-        { error: data?.error?.message || "Failed to fetch clients" },
+        { error: data?.error?.message || "Failed to fetch projects" },
         { status: r.status }
       );
 
     // Strapi v5 возвращает data как массив готовых объектов
     return NextResponse.json({
-      clients: data.data ?? [],
+      projects: data.data ?? [],
       total: data.meta.pagination.total,
     });
   } catch (err) {
-    console.error("Proxy /api/clients GET error:", err);
+    console.error("Proxy /api/projects GET error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -49,7 +53,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const r = await fetch(`${API_URL}/api/clients`, {
+    const r = await fetch(`${API_URL}/api/projects`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,14 +65,14 @@ export async function POST(req: Request) {
     const data = await r.json();
     if (!r.ok)
       return NextResponse.json(
-        { error: data?.error?.message || "Failed to create client" },
+        { error: data?.error?.message || "Failed to create project" },
         { status: r.status }
       );
 
     // В Strapi v5 data — уже объект клиента
     return NextResponse.json(data.data);
   } catch (err) {
-    console.error("Proxy /api/clients POST error:", err);
+    console.error("Proxy /api/projects POST error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

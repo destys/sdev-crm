@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-import { useClients } from "@/hooks/use-clients";
 import { useConfirmDialog } from "@/store/use-confirm-dialog";
 import { useSheet } from "@/store/use-sheet";
 import {
@@ -22,48 +21,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProjects } from "@/hooks/use-projects";
+import { Spinner } from "@/components/ui/spinner";
 
-import { Spinner } from "../ui/spinner";
+import { ProjectsEmpty } from "./projects-empty";
+import { getProjectColumns } from "./projects-data-columns";
+import { EditProjectForm } from "./edit-project-form";
+import { ProjectsDataTable } from "./projects-data-table";
 
-import { ClientsDataTable } from "./clients-data-table";
-import { getClientColumns } from "./clients-data-columns";
-import { EditClientForm } from "./edit-client-form";
-import { ClientsEmpty } from "./clients-empty";
-
-export const ClientsPageContent = () => {
-  const t = useTranslations("clients");
+export const ProjectsPageContent = () => {
+  const t = useTranslations("projects");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { clients, total, deleteClient, updateClient, isLoading } = useClients({
-    populate: "*",
-    pagination: { page, pageSize },
-  });
+  const { projects, total, deleteProject, updateProject, isLoading } =
+    useProjects({
+      populate: "*",
+      pagination: { page, pageSize },
+    });
 
   const { openDialog } = useConfirmDialog();
   const { openSheet, closeSheet } = useSheet();
 
   if (isLoading) return <Spinner />;
-  if (!total || !clients.length) return <ClientsEmpty />;
+  if (!total) return <ProjectsEmpty />;
 
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   const handleEdit = (documentId: string) => {
-    const client = clients.find((c) => c.documentId === documentId);
-    if (!client) return toast.error("Клиент не найден");
+    const project = projects.find((c) => c.documentId === documentId);
+    if (!project) return toast.error("Клиент не найден");
 
     openSheet({
-      id: "edit-client",
+      id: "edit-project",
       title: t("sheet.editTitle"),
       description: t("sheet.editDescription"),
       size: "lg",
       content: (
-        <EditClientForm
-          client={client}
+        <EditProjectForm
+          project={project}
           onSubmit={async (values) => {
             try {
-              await updateClient({ documentId, data: values });
+              await updateProject({ documentId, data: values });
               closeSheet();
               toast.success(t("notifications.editSuccess"));
             } catch (err) {
@@ -74,7 +74,7 @@ export const ClientsPageContent = () => {
           }}
         />
       ),
-      payload: client,
+      payload: project,
     });
   };
 
@@ -94,7 +94,7 @@ export const ClientsPageContent = () => {
 
     try {
       setDeletingId(documentId);
-      await deleteClient(documentId);
+      await deleteProject(documentId);
       toast.success(t("notifications.deleteSuccess"));
     } catch (error) {
       toast.error(t("notifications.deleteError"), {
@@ -114,14 +114,14 @@ export const ClientsPageContent = () => {
 
   return (
     <div className="space-y-6">
-      <ClientsDataTable
-        columns={getClientColumns({
+      <ProjectsDataTable
+        columns={getProjectColumns({
           t,
           onEdit: handleEdit,
           onDelete: handleDelete,
           deletingId: deletingId,
         })}
-        data={clients}
+        data={projects}
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

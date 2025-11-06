@@ -119,4 +119,33 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* === Fix react-international-phone default styles (1:1 with Input) === */
+  .react-international-phone-input-container {
+    @apply !flex !items-center !w-full !min-w-0 !h-9 !rounded-md !border !border-input !bg-transparent !px-3 !py-1 !text-base !shadow-xs !transition-[color,box-shadow] !outline-none focus-within:!border-ring focus-within:!ring-ring/50 focus-within:!ring-[3px] aria-invalid:!ring-destructive/20 dark:aria-invalid:!ring-destructive/40 aria-invalid:!border-destructive;
+  }
+
+  .react-international-phone-input {
+    @apply !flex-1 !h-full !bg-transparent !px-0 !text-base placeholder:!text-muted-foreground !outline-none !border-none !shadow-none disabled:!pointer-events-none disabled:!cursor-not-allowed disabled:!opacity-50 md:!text-sm;
+  }
+
+  .react-international-phone-country-selector-button {
+    @apply !border-none !bg-transparent !text-muted-foreground hover:!text-primary focus-visible:!outline-none !px-1.5;
+  }
+
+  .react-international-phone-country-selector-button__dropdown {
+    @apply !bg-popover !text-foreground !border !border-border !shadow-md !rounded-md;
+  }
+
+  /* Dark mode adjustments */
+  .dark .react-international-phone-input-container {
+    @apply !bg-input/30 !border-input;
+  }
+
+  .dark .react-international-phone-input {
+    @apply !bg-transparent !text-foreground;
+  }
+
+  .dark .react-international-phone-country-selector-button:hover {
+    @apply !text-primary-foreground;
+  }
 }

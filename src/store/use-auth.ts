@@ -106,6 +106,7 @@ export const useAuth = create<AuthState>()(
             method: "POST",
             credentials: "include",
           });
+          window.location.href = "/sign-in";
         } catch (e) {
           console.warn("Logout error:", e);
         } finally {

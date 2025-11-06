@@ -150,6 +150,36 @@
       "clientId": "ID клиента"
     },
     "sheet": {
+      "editTitle": "Добавить клиента",
+      "editDescription": "Заполните основные контактные данные клиента"
+    }
+  },
+  "projects": {
+    "columns": {
+      "name": "Название проекта",
+      "date_start": "Дата начала",
+      "date_end": "Дата окончания",
+      "status": "Статус",
+      "client": "Клиент",
+      "tasks_count": "Кол-во задач"
+    },
+    "actions": {
+      "edit": "Редактировать клиента",
+      "delete": "Удалить клиента",
+      "cancel": "Отмена",
+      "confirmDeleteTitle": "Удалить клиента?",
+      "confirmDeleteDescription": "Это действие нельзя отменить. Клиент и все его данные будут удалены."
+    },
+    "notifications": {
+      "editSuccess": "Данные клиента успешно обновлены",
+      "editError": "Ошибка при обновлении клиента",
+      "deleteSuccess": "Клиент успешно удалён",
+      "deleteError": "Ошибка при удалении клиента",
+      "cancelDelete": "Удаление отменено",
+      "editNotImplemented": "Функция редактирования пока не реализована",
+      "clientId": "ID клиента"
+    },
+    "sheet": {
       "editTitle": "test",
       "editDescription": "test"
     }

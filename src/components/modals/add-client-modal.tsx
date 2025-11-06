@@ -17,7 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useSheet } from "@/store/use-sheet";
 import { useClients } from "@/hooks/use-clients";
 import { useDialogStore } from "@/store/use-dialog-store";
 
@@ -118,7 +117,7 @@ export const AddClientModal = () => {
             <FormItem>
               <FormLabel>Телефон</FormLabel>
               <FormControl>
-                <Input placeholder="+7 (999) 999-99-99" {...field} />
+                <Input type="tel" placeholder="+7 (999) 999-99-99" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

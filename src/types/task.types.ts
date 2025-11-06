@@ -1,16 +1,15 @@
 import { ProjectProps } from "./project.types";
 
-export interface ClientProps {
+export interface TaskProps {
   documentId: string;
   name: string;
   company: string;
   phone: string;
   email: string;
-  notes: string;
   projects: ProjectProps[];
 }
 
-export interface UpdateClientDto {
+export interface UpdateTaskDto {
   documentId: string;
   name: string;
   company: string;

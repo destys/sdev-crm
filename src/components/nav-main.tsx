@@ -25,12 +25,15 @@ export function NavMain({
 }: {
   items: {
     title: string;
-    url: string;
+    url?: string;
+    onClick?: () => void;
     icon: LucideIcon;
     isActive?: boolean;
     items?: {
+      icon?: LucideIcon;
       title: string;
-      url: string;
+      url?: string;
+      onClick?: () => void;
     }[];
   }[];
 }) {
@@ -41,11 +44,22 @@ export function NavMain({
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                onClick={item.onClick}
+              >
+                {item.url ? (
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                ) : (
+                  <div>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </div>
+                )}
               </SidebarMenuButton>
               {item.items?.length ? (
                 <>
@@ -59,10 +73,23 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </Link>
+                          <SidebarMenuSubButton
+                            asChild
+                            onClick={subItem.onClick}
+                            className=" cursor-pointer"
+                          >
+                            <div className="flex gap-2">
+                              {subItem.icon && <subItem.icon size={16} />}
+                              {subItem.url ? (
+                                <Link href={subItem.url} className="text-sm">
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              ) : (
+                                <div className="text-sm">
+                                  <span>{subItem.title}</span>
+                                </div>
+                              )}
+                            </div>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
